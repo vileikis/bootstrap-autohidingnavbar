@@ -20,6 +20,7 @@
 
   function AutoHidingNavbar(element, options) {
     this.element = $(element);
+    this.baseTop = parseInt(this.element.css('top')) || 0;
     this.settings = $.extend({}, defaults, options);
     this._defaults = defaults;
     this._name = pluginName;
@@ -32,13 +33,14 @@
     }
 
     autoHidingNavbar.element.addClass('navbar-hidden').animate({
-      top: -autoHidingNavbar.element.height()
+      top: autoHidingNavbar.baseTop -autoHidingNavbar.element.height()
     }, {
       queue: false,
       duration: autoHidingNavbar.settings.animationDuration
     });
 
-    $('.dropdown.open .dropdown-toggle', autoHidingNavbar.element).dropdown('toggle');
+    // TODO toogle dropdown when hiding
+//    $('.dropdown.open .dropdown-toggle', autoHidingNavbar.element).dropdown('toggle');
 
     _visible = false;
   }
@@ -49,7 +51,7 @@
     }
 
     autoHidingNavbar.element.removeClass('navbar-hidden').animate({
-      top: 0
+      top: autoHidingNavbar.baseTop //0
     }, {
       queue: false,
       duration: autoHidingNavbar.settings.animationDuration
@@ -98,7 +100,14 @@
   }
 
   function bindEvents(autoHidingNavbar) {
-    $document.on('scroll.' + pluginName, function() {
+
+    // $window instead $document to make it work in ie8
+    $window.on('scroll.' + pluginName, function() {
+
+      if (!autoHidingNavbar.element.is(':visible')) {
+        return;
+      }
+
       if (new Date().getTime() - _lastScrollHandlerRun > _throttleDelay) {
         scrollHandler(autoHidingNavbar);
       }
